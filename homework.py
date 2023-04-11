@@ -104,15 +104,16 @@ def main():
         try:
             response = get_api_answer(timestamp)
             homeworks = check_response(response)
-            homework = homeworks[0]
-            message = parse_status(homework)
-            print(message)
-            if last_message != message:
-                send_message(bot, message)
-                last_message = message
+            if homeworks:
+                homeworks = homeworks[0]
+                message = parse_status(homeworks)
+                if last_message != message:
+                    send_message(bot, message)
+                    last_message = message
             else:
                 logging.debug('Статус работы не обновлен.')
                 timestamp = response.get('current_date')
+                last_err = ''
         except Exception as error:
             message_err = f'Сбой в работе программы: {error}'
             logging.error(message_err, exc_info=True)
