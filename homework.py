@@ -27,30 +27,34 @@ HOMEWORK_VERDICTS = {
 
 def check_tokens() -> bool:
     """Проверка наличия токенов в окружениии переменных."""
-    tokens = PRACTICUM_TOKEN and TELEGRAM_TOKEN and TELEGRAM_CHAT_ID
-    if tokens:
+    tokens = [PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID]
+    if all(tokens):
         return tokens
     else:
         return False
 
 
-def send_message(bot, message):
+def send_message(bot, message) -> None:
     """Отправка сообщения в телеграмм."""
     try:
         logging.info('Отправка сообщения в мессенджер...')
         bot.send_message(TELEGRAM_CHAT_ID, message)
         logging.debug('Сообщение отправлено в мессенджер')
-    except Exception as err:
+    except telegram.error.TelegramError as err:
         logging.error(f'Ошибка при отправке сообщения:{err}')
+        raise ConnectionError(f'Ошибка при отправке сообщения:{err}')
 
 
-def get_api_answer(timestamp):
+def get_api_answer(timestamp: int) -> dict:
     """Запрос API сервиса."""
     params = {'from_date': (timestamp)}
     try:
+        logging.debug('Запрос API сервиса...')
         response = requests.get(ENDPOINT, headers=HEADERS, params=params)
-    except requests.RequestException as err:
+    except OSError as err:
         logging.error(f'Ошибка в запросе API{err}')
+        raise ConnectionError(
+            'Не удалось установить соединение с сервером') from err
     if response.status_code != HTTPStatus.OK:
         logging.error(f'Статус запроса {response.status_code}')
         raise UnxpectedHTTPStatusError(
@@ -60,8 +64,9 @@ def get_api_answer(timestamp):
         return response.json()
 
 
-def check_response(response):
+def check_response(response: dict) -> list:
     """Проверка Ответа API."""
+    logging.debug('Проверка Ответа API')
     if not isinstance(response, dict):
         raise TypeError('Ожидаемый тип данных словарь,'
                         f'Тип данных {type(response)}')
@@ -73,10 +78,13 @@ def check_response(response):
     if not isinstance(current_date, int):
         raise TypeError('Ожидаемый тип данных целое число,'
                         f'Тип данных {type(current_date)}')
+    if not response.keys():
+        raise KeyError('Один из ожидаемых ключей отсутствует')
+    logging.debug('Проверка ответа пройдена')
     return homework
 
 
-def parse_status(homework):
+def parse_status(homework: dict) -> str:
     """Извлечение статуса ДЗ."""
     homework_name = homework.get('homework_name')
     status = homework.get('status')
@@ -103,6 +111,8 @@ def main():
     while True:
         try:
             response = get_api_answer(timestamp)
+            if not response.keys():
+                logging.error('отсутствуют ожидаемые ключи в ответе API')
             homeworks = check_response(response)
             if homeworks:
                 homeworks = homeworks[0]
