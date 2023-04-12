@@ -10,15 +10,15 @@ from exceptions import UnxpectedHTTPStatusError
 
 load_dotenv()
 
-PRACTICUM_TOKEN = os.getenv('PRACTICUM_TOKEN')
-TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
-TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
+PRACTICUM_TOKEN: str = os.getenv('PRACTICUM_TOKEN')
+TELEGRAM_TOKEN: str = os.getenv('TELEGRAM_TOKEN')
+TELEGRAM_CHAT_ID: str = os.getenv('TELEGRAM_CHAT_ID')
 
-EPOCH_TIMESTAMP = time.gmtime(1680516000)  # 03.04.2023 Начало 7 спринта
-RETRY_PERIOD = 600
-ENDPOINT = 'https://practicum.yandex.ru/api/user_api/homework_statuses/'
-HEADERS = {'Authorization': f'OAuth {PRACTICUM_TOKEN}'}
-HOMEWORK_VERDICTS = {
+EPOCH_TIMESTAMP: int = time.gmtime(1680516000)  # 03.04.2023 Начало 7 спринта
+RETRY_PERIOD: int = 600
+ENDPOINT: str = 'https://practicum.yandex.ru/api/user_api/homework_statuses/'
+HEADERS: dict = {'Authorization': f'OAuth {PRACTICUM_TOKEN}'}
+HOMEWORK_VERDICTS: dict = {
     'approved': 'Работа проверена: ревьюеру всё понравилось. Ура!',
     'reviewing': 'Работа взята на проверку ревьюером.',
     'rejected': 'Работа проверена: у ревьюера есть замечания.'
@@ -73,12 +73,15 @@ def check_response(response: dict) -> list:
     homework = response.get('homeworks')
     current_date = response.get('current_date')
     if not isinstance(homework, list):
+        logging.error('Ошибка в типе данных "homeworks"')
         raise TypeError('Ожидаемый тип данных список,'
                         f'Тип данных {type(homework)}')
     if not isinstance(current_date, int):
+        logging.error('Ошибка в типе данных "current_date"')
         raise TypeError('Ожидаемый тип данных целое число,'
                         f'Тип данных {type(current_date)}')
     if not response.keys():
+        logging.error('отсутствуют ожидаемые ключи в ответе API')
         raise KeyError('Один из ожидаемых ключей отсутствует')
     logging.debug('Проверка ответа пройдена')
     return homework
@@ -111,8 +114,6 @@ def main():
     while True:
         try:
             response = get_api_answer(timestamp)
-            if not response.keys():
-                logging.error('отсутствуют ожидаемые ключи в ответе API')
             homeworks = check_response(response)
             if homeworks:
                 homeworks = homeworks[0]
