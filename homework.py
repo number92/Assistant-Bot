@@ -14,7 +14,7 @@ PRACTICUM_TOKEN: str = os.getenv('PRACTICUM_TOKEN')
 TELEGRAM_TOKEN: str = os.getenv('TELEGRAM_TOKEN')
 TELEGRAM_CHAT_ID: str = os.getenv('TELEGRAM_CHAT_ID')
 
-EPOCH_TIMESTAMP: int = time.gmtime(1680516000)  # 03.04.2023 Начало 7 спринта
+EPOCH_TIMESTAMP: int = time.gmtime(1680516000)  # 03.04.2023 test
 RETRY_PERIOD: int = 600
 ENDPOINT: str = 'https://practicum.yandex.ru/api/user_api/homework_statuses/'
 HEADERS: dict = {'Authorization': f'OAuth {PRACTICUM_TOKEN}'}
